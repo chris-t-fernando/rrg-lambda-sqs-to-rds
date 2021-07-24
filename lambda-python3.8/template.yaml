@@ -1,39 +1,40 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   lambda-python3.8
 
-  Sample SAM Template for lambda-python3.8
+  Pumps SQS messages into an RDS database
+Globals:
+  Function:
+    Timeout: 300
 
 Resources:
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function # More cinfo about Function Resource: htt  ps://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  SQSToRDSFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      CodeUri: hello_world/
+      CodeUri: sqs_to_rds/
       Handler: app.lambda_handler
       Runtime: python3.8
+      Tags:
+        Project: "rrg-creator"
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-8b5c50ee
+        SubnetIds:
+          - subnet-6577a03c
+          - subnet-a752c0c2
+          - subnet-325eee45
+      Policies:
+        - Statement:
+            - Sid: ReadSQS
+              Effect: Allow
+              Action:
+                - sqs:ReceiveMessage
+              Resource: arn:aws:sqs:us-west-2:036372598227:quote-updates
       Events:
-        HelloWorld:
-          #Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-          #Properties:
-          #  Path: /hello
-          #  Method: get
+        SQSToRDS:
           Type: SQS
           Properties:
             Queue: arn:aws:sqs:us-west-2:036372598227:quote-updates
             BatchSize: 10
             Enabled: true
-
-Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-#  HelloWorldApi:
-#    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-#    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn

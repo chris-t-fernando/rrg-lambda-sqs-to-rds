@@ -2,9 +2,7 @@ from __future__ import print_function
 import json
 import boto3
 import pymysql.cursors
-
-# import traceback
-# import logging, sys
+import logging, sys
 
 # handler for pulling config from SSM
 def getSSMParameter(ssm, parameterPath, encryptionOption=False):
@@ -16,9 +14,7 @@ def getSSMParameter(ssm, parameterPath, encryptionOption=False):
 
 
 def lambda_handler(event, context):
-
-    # print(json.dumps(event))
-
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     # set up boto SSM
     ssmClient = boto3.client("ssm")
 
@@ -35,16 +31,16 @@ def lambda_handler(event, context):
     insertQuotes = []
 
     if not "Records" in event.keys():
-        print("Weird payload, failing")
-        return False
+        logging.error("Weird payload, failing")
+        raise Exception("Weird payload, failing")
 
     with connection:
         with connection.cursor() as cursor:
             for record in event["Records"]:
                 listOfQuotes = json.loads(record["body"])
                 if not "quoteObject" in listOfQuotes.keys():
-                    print("Unable to find quoteObject in payload")
-                    return False
+                    logging.error("Unable to find quoteObject in payload")
+                    raise Exception("Unable to find quoteObject in payload")
 
                 for x in listOfQuotes["quoteObject"]:
                     sqlParameters = (
@@ -55,7 +51,7 @@ def lambda_handler(event, context):
                     result = cursor.fetchone()
                     # print(result["count(*)"])
                     if result["count(*)"] == 0:
-                        print(
+                        logging.warning(
                             f"Queuing for insert: stock_code: {x['stock_code']} quote for date: {x['quote_date']}"
                         )
                         insertQuotes.append(
@@ -71,21 +67,20 @@ def lambda_handler(event, context):
                         )
 
                     else:
-                        print(
+                        logging.warning(
                             f"Skipping stock_code: {x['stock_code']} quote for date: {x['quote_date']}"
                         )
 
-                sqlInsert = "insert into weekly_stock_quotes (quote_date, stock_code, open_price, high_price, low_price, close_price, volume) values (%s, %s, %s, %s, %s, %s, %s)"
+            sqlInsert = "insert into weekly_stock_quotes (quote_date, stock_code, open_price, high_price, low_price, close_price, volume) values (%s, %s, %s, %s, %s, %s, %s)"
 
-                try:
-                    for y in insertQuotes:
-                        # print(sqlInsert, y)
-                        # now do the inserts
-                        cursor.execute(sqlInsert, y)
+            try:
+                for y in insertQuotes:
+                    cursor.execute(sqlInsert, y)
 
-                    connection.commit()
-                    print("Successfully inserted quotes")
-                except Exception as e:
-                    print(f"Failed to insert: {str(e)}")
+                connection.commit()
 
-    return ""
+                logging.warning("Successfully inserted quotes")
+                return {"statusCode": 200, "body": json.dumps("Success")}
+            except Exception as e:
+                logging.error(f"Failed to insert: {str(e)}")
+                raise

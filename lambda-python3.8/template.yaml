@@ -31,6 +31,12 @@ Resources:
               Action:
                 - sqs:ReceiveMessage
               Resource: arn:aws:sqs:us-west-2:036372598227:quote-updates
+        - Statement:
+            - Sid: ReadSSM
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: arn:aws:ssm:us-west-2:036372598227:parameter/*
       Events:
         SQSToRDS:
           Type: SQS

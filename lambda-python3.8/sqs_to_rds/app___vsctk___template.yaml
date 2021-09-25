@@ -1,0 +1,9 @@
+Resources:
+  sqstords:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      CodeUri: Y:/rrg-lambda-sqs-to-rds/lambda-python3.8/sqs_to_rds
+      Runtime: python3.8
+      Environment:
+        Variables: {}

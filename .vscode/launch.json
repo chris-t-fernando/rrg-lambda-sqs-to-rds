@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "type": "aws-sam",
+            "request": "direct-invoke",
+            "name": "sqs_to_rds:app.lambda_handler (python3.8)",
+            "invokeTarget": {
+                "target": "code",
+                "projectRoot": "${workspaceFolder}/lambda-python3.8/sqs_to_rds",
+                "lambdaHandler": "app.lambda_handler"
+            },
+            "lambda": {
+                "runtime": "python3.8",
+                "payload": {
+                    "json": {
+                        "quoteObject": [
+                            {
+                                "quote_date": "2021-07-15",
+                                "stock_code": "360",
+                                "open": 7.690000057220459,
+                                "high": 7.929999828338623,
+                                "low": 7.590000152587891,
+                                "close": 7.829999923706055,
+                                "volume": 1020335
+                            }
+                        ]
+                    }
+                },
+                "environmentVariables": {}
+            }
+        }
+    ]
+}

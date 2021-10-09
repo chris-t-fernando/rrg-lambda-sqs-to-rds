@@ -17,6 +17,10 @@ Resources:
       Runtime: python3.8
       Tags:
         Project: "rrg-creator"
+      Layers:
+        - arn:aws:lambda:us-west-2:770693421928:layer:Klayers-python38-boto3:95
+        - arn:aws:lambda:us-west-2:036372598227:layer:pymysqllayer:1
+        - arn:aws:lambda:us-west-2:036372598227:layer:ctf-stockobjects:1
       VpcConfig:
         SecurityGroupIds:
           - sg-8b5c50ee

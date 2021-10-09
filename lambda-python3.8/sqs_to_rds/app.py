@@ -1,7 +1,17 @@
 import json
 import boto3
-import pymysql.cursors
 import logging, sys
+from stockobjects.sector import Sector
+from stockobjects.company import Company
+from stockobjects.sectorcollection import SectorCollection
+
+
+if __name__ == "__main__":
+    import pymysql as MySQLdb
+    import pymysql.cursors as cursors
+else:
+    import MySQLdb.cursors
+
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
@@ -116,14 +126,14 @@ def lambda_handler(event, context):
     ssmClient = boto3.client("ssm")
     print(json.dumps(event))
 
-    connection = pymysql.connect(
+    connection = MySQLdb.connect(
         host=getSSMParameter(ssm=ssmClient, path="/rrg-creator/rds-endpoint"),
         user=getSSMParameter(ssm=ssmClient, path="/rrg-creator/rds-user"),
         password=getSSMParameter(
             ssm=ssmClient, path="/rrg-creator/rds-password", encrypted=True
         ),
         database=getSSMParameter(ssm=ssmClient, path="/rrg-creator/rds-database"),
-        cursorclass=pymysql.cursors.DictCursor,
+        cursorclass=MySQLdb.cursors.DictCursor,
     )
 
     if not "Records" in event.keys():
